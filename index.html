@@ -1,157 +1,35 @@
+
 <!DOCTYPE html>
 <meta charset="utf-8">
+<meta name="viewport" content="width=1000">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:site" content="@mbostock">
+<meta property="og:url" content="http://bl.ocks.org/sdjacobs/3900867adc06c7680d48">
+<meta property="og:title" content="Dijkstra&#39;s algorithm in Javascript/D3">
+<meta property="og:description" content="Simon Jacobs’s Block 3900867adc06c7680d48">
+<meta property="og:image" content="http://bl.ocks.org/sdjacobs/raw/3900867adc06c7680d48/5a31638cfaacefa91f1c50c5f48334431f99c69c/thumbnail.png">
+<title>Dijkstra&#39;s algorithm in Javascript/D3 - bl.ocks.org</title>
+<link rel="icon" href="/favicon.png">
+<link rel="canonical" href="http://bl.ocks.org/sdjacobs/3900867adc06c7680d48">
 <style>
 
-.node {
-  stroke: #fff;
-  stroke-width: 1.5px;
-}
-
-.link {
-  stroke: #999;
-  stroke-opacity: .6;
-}
+@import url("/style.css");
 
 </style>
-<body>
-<script src="http://d3js.org/d3.v3.min.js"></script>
-<script src="dijkstra.js"></script>
-<script>
 
-var width = 960,
-    height = 500;
+<header>
+  <div class="column">
+    <div class="navigation">
+      <a href="/">Popular</a>
+      / <a href="/-/about">About</a>
+    </div>
+    <a class="user" href="/sdjacobs"><img class="avatar" src="https://avatars2.githubusercontent.com/u/5751667?v=4&amp;s=60" width="30" height="30">Simon Jacobs</a>’s
+    Block <a class="gist gist-id self" title="View Gist on GitHub." href="https://gist.github.com/sdjacobs/3900867adc06c7680d48">3900867adc06c7680d48</a>    <div class="date">Updated September 29, 2016</div>
+  </div>
+</header>
 
-var color = d3.scale.category20();
-
-var force = d3.layout.force()
-    .charge(-120)
-    .linkDistance(30)
-    .size([width, height]);
-
-var svg = d3.select("body").append("svg")
-    .attr("width", width)
-    .attr("height", height);
-
-d3.tsv("cities.tsv", function(error, data) {
-  
-  var nodes = [], nodesByName = {}, links = [];
-  function addNodeByName(fullname) {
-    var name = fullname.split(',')[0];
-    if (!nodesByName[name]) {
-      var node = {"name":name, "links":[]}
-      nodesByName[name] = node;
-      nodes.push(node);
-      return node;
-    }
-    else
-      return nodesByName[name];
-  }
-
-  data.forEach(function(d) {
-    for (k in d) {
-      if (d.hasOwnProperty(k) && k != "Cities1" && d[k] < 750) {
-        links.push({"source": addNodeByName(d["Cities1"]), "target": addNodeByName(k), "value": parseInt(d[k])})
-      }
-    } 
-  });
-
-
-  force
-      .nodes(nodes)
-      .links(links)
-      .start();
-
-  var link = svg.selectAll(".link")
-      .data(links)
-    .enter().append("line")
-      .attr("class", "link")
-      .style("stroke-width", 1);
-
-  var node = svg.selectAll(".node")
-      .data(nodes)
-    .enter().append("circle")
-      .attr("class", "node")
-      .attr("r", 5)
-      .style("fill", "grey")
-      .call(force.drag);
-
-  
-  link.each(function(d) {
-      d.source.links.push(d);
-      d.selection = d3.select(this);
-  });
-
-  node.each(function(d) {
-      d.selection = d3.select(this);
-  });
-
-
-  node.append("title")
-      .text(function(d) { return d.name; });
-
-  link.append("title")
-      .text(function(d) { return d.source.name + " → " + d.target.name + "\n" + d.value + " mi" });
-  
-  
-  force.on("tick", function() {
-    link.attr("x1", function(d) { return d.source.x; })
-        .attr("y1", function(d) { return d.source.y; })
-        .attr("x2", function(d) { return d.target.x; })
-        .attr("y2", function(d) { return d.target.y; });
-
-    node.attr("cx", function(d) { return d.x; })
-        .attr("cy", function(d) { return d.y; });
-  });
-
-
-  
-  node.on("mouseover", function(d) {
-      d3.select(this)
-        .attr("r", 10)
-      
-      d.links.forEach(function(l) {
-        l.selection
-          .style("stroke-width", 10)
-        l.target.selection
-          .attr("r", 7);
-      });
-  });
-
-  node.on("mouseout", function(d) {
-      node.attr("r", 5)
-      link.style("stroke-width", 1);
-  });
-
-  link.on("mouseover", function() {
-      d3.select(this)
-        .style("stroke-width", 10);
-  });
-
-  link.on("mouseout", function() {
-      d3.select(this)
-        .style("stroke-width", 1);
-  });
-    
-  var dijkstra = d3.dijkstra()
-    .nodes(nodes)
-    .edges(links);
-
-  var color = d3.scale.linear()
-    .domain([0, 1000, 2500])
-    .range(["green", "yellow", "red"]);
-
-  dijkstra.on("tick", function() {
-      node.style("fill", function(d) { return color(d.distance); });
-  });
-
-  dijkstra.on("end", function() {
-    var name = dijkstra.source().name;
-    node.select("title")
-        .text(function(d) { return d.name + "\n(" + d.distance + " miles from " + name + ")" });
-  });
-
-  node.on("click", dijkstra.start);
-
- });
-
-</script>
+<div class="column">
+  <h1>Dijkstra&#39;s algorithm in Javascript/D3</h1>
+  <div class="index">
+    <iframe sandbox="allow-popups allow-scripts allow-forms allow-same-origin" src="/sdjacobs/raw/3900867adc06c7680d48/5a31638cfaacefa91f1c50c5f48334431f99c69c/" marginwidth="0" marginheight="0" style="height:500px;" scrolling="no"></iframe>
+  </div>
