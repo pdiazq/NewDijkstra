@@ -26,7 +26,7 @@ var color = d3.scale.category20();
 
 var force = d3.layout.force()
     .charge(-120)
-    .linkDistance(30)
+    .linkDistance(250)
     .size([width, height]);
 
 var svg = d3.select("body").append("svg")
@@ -138,7 +138,7 @@ d3.tsv("cities.tsv", function(error, data) {
     .edges(links);
 
   var color = d3.scale.linear()
-    .domain([0, 1000, 2500])
+    .domain([0, 100, 200])
     .range(["green", "yellow", "red"]);
 
   dijkstra.on("tick", function() {
@@ -148,7 +148,7 @@ d3.tsv("cities.tsv", function(error, data) {
   dijkstra.on("end", function() {
     var name = dijkstra.source().name;
     node.select("title")
-        .text(function(d) { return d.name + "\n(" + d.distance + " miles from " + name + ")" });
+        .text(function(d) { return d.name + "\n(" + d.distance + " Costo promedio de tonelada transportada por kilómetro desde " + name + ")" });
   });
 
   node.on("click", dijkstra.start);
