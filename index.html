@@ -1,8 +1,180 @@
-<div style="position: absolute; left: 0; top: 0; right: 0; bottom: 0; background-color:white;">
-    <div style="width:50%; height:100%; background-color:#2EFEF7;">
-            <iframe sandbox="allow-popups allow-scripts allow-forms allow-same-origin" src="https://github.com/pdiazq/NewDijkstra/blob/gh-pages/main" marginwidth="0" marginheight="0" style="height:500px;" scrolling="no"></iframe>
-   
+<FONT COLOR="#0174DF">
+<h1>El delicado "equilibrio" del transporte de carga terrestre de Colombia</h1>
+<!DOCTYPE html>
+  <p>
+  <FONT COLOR="green">
+<I>
+<h1>Para cubrir largas distancias hay que tener buenos camiones que transporten carga que agregue el mayor valor!</h1>
+  </I>
+  </FONT>,
+  <br> &nbsp;
+  <FONT SIZE="4">
+    Datos tomados de:
+  <a href="dirección_URL">
+https://www.google.com.co/url?sa=t&rct=j&q=&esrc=s&source=web&cd=1&cad=rja&uact=8&ved=0ahUKEwjX6dbVi4jXAhXCWSYKHdZQBxMQFggkMAA&url=https%3A%2F%2Fmintransporte.gov.co%2Fdescargar.php%3Fid%3D1143&usg=AOvVaw0P7C5TlBVjthdUElHZLoZO
+</a>
+    </p>
+   <p>
+    <B>Aunque los valores por kilómetro son menores entre mayor la distancia, el tiempo y la distancia equivale a mayor desgaste y dinero</B>
+    <br> &nbsp;
+   </p>
+<br>
+  </FONT> 
+  
+<meta charset="utf-8">
+<style>
+
+.node {
+  stroke: #fff;
+  stroke-width: 1.5px;
+}
+
+.link {
+  stroke: #999;
+  stroke-opacity: .6;
+}
+
+</style>
+<body>
+<script src="https://d3js.org/d3.v3.min.js"></script>
+<script src="dijkstra.js"></script>
+<script>
+
+var width = 960,
+    height = 500;
+
+var color = d3.scale.category20();
+
+var force = d3.layout.force()
+    .charge(-120)
+    .linkDistance(250)
+    .size([width, height]);
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+d3.tsv("cities.tsv", function(error, data) {
+  
+  var nodes = [], nodesByName = {}, links = [];
+  function addNodeByName(fullname) {
+    var name = fullname.split(',')[0];
+    if (!nodesByName[name]) {
+      var node = {"name":name, "links":[]}
+      nodesByName[name] = node;
+      nodes.push(node);
+      return node;
+    }
+    else
+      return nodesByName[name];
+  }
+
+  data.forEach(function(d) {
+    for (k in d) {
+      if (d.hasOwnProperty(k) && k != "Cities1" && d[k] < 750) {
+        links.push({"source": addNodeByName(d["Cities1"]), "target": addNodeByName(k), "value": parseInt(d[k])})
+      }
+    } 
+  });
+
+
+  force
+      .nodes(nodes)
+      .links(links)
+      .start();
+
+  var link = svg.selectAll(".link")
+      .data(links)
+    .enter().append("line")
+      .attr("class", "link")
+      .style("stroke-width", 1);
+
+  var node = svg.selectAll(".node")
+      .data(nodes)
+    .enter().append("circle")
+      .attr("class", "node")
+      .attr("r", 5)
+      .style("fill", "grey")
+      .call(force.drag);
+
+  
+  link.each(function(d) {
+      d.source.links.push(d);
+      d.selection = d3.select(this);
+  });
+
+  node.each(function(d) {
+      d.selection = d3.select(this);
+  });
+
+
+  node.append("title")
+      .text(function(d) { return d.name; });
+
+  link.append("title")
+      .text(function(d) { return d.source.name + " → " + d.target.name + "\n" + d.value + " mi" });
+  
+  
+  force.on("tick", function() {
+    link.attr("x1", function(d) { return d.source.x; })
+        .attr("y1", function(d) { return d.source.y; })
+        .attr("x2", function(d) { return d.target.x; })
+        .attr("y2", function(d) { return d.target.y; });
+
+    node.attr("cx", function(d) { return d.x; })
+        .attr("cy", function(d) { return d.y; });
+  });
+
+
+  
+  node.on("mouseover", function(d) {
+      d3.select(this)
+        .attr("r", 10)
+      
+      d.links.forEach(function(l) {
+        l.selection
+          .style("stroke-width", 10)
+        l.target.selection
+          .attr("r", 7);
+      });
+  });
+
+  node.on("mouseout", function(d) {
+      node.attr("r", 5)
+      link.style("stroke-width", 1);
+  });
+
+  link.on("mouseover", function() {
+      d3.select(this)
+        .style("stroke-width", 10);
+  });
+
+  link.on("mouseout", function() {
+      d3.select(this)
+        .style("stroke-width", 1);
+  });
     
-    </div>
-    <div style="width:10%; height:100%; background-color:red;">bbb</div>       
-</div>
+  var dijkstra = d3.dijkstra()
+    .nodes(nodes)
+    .edges(links);
+
+  var color = d3.scale.linear()
+    .domain([0, 100, 200])
+    .range(["green", "yellow", "red"]);
+
+  dijkstra.on("tick", function() {
+      node.style("fill", function(d) { return color(d.distance); });
+  });
+
+  dijkstra.on("end", function() {
+    var name = dijkstra.source().name;
+    node.select("title")
+        .text(function(d) { return d.name + "\n(" + d.distance + " Costo promedio de tonelada transportada por kilómetro desde " + name + ")" });
+  });
+
+  node.on("click", dijkstra.start);
+
+ });
+
+</script>  
+<img src="convencion.jpg" alt="Colores" height="200" width="400">
